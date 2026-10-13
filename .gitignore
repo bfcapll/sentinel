@@ -1,0 +1,12 @@
+node_modules/
+dist/
+coverage/
+.env
+*.db
+*.db-wal
+*.db-shm
+data/
+logs/
+backups/
+config/wallets.yaml
+replay-out/
