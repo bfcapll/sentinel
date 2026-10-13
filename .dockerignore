@@ -1,0 +1,11 @@
+node_modules
+dist
+data
+backups
+logs
+replay-out
+.git
+.env
+config/wallets.yaml
+test
+fixtures

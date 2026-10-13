@@ -29,6 +29,7 @@ const HELP = `sentinel: on-chain holdings monitor
            [--as-wallet 0x..] [--position-usd N] [--config DIR] [--out DIR]
   sentinel backup [--dest FILE] [--config DIR]   consistent DB backup, prunes old ones
   sentinel status [--config DIR]                 cursor, open conditions, RPC health from the DB
+  sentinel healthcheck [--max-age SECONDS]       exit 1 if no cycle committed recently (Docker HEALTHCHECK)
   sentinel telegram test [--config DIR]          send a test message on each bot
   sentinel demo p0|p1|resolve [--config DIR]     inject / close a drill alert in the live DB
 `;
@@ -165,6 +166,23 @@ async function cmdStatus(dir: string): Promise<number> {
   }
 }
 
+async function cmdHealthcheck(dir: string, maxAgeS: number): Promise<number> {
+  const cfg = loadConfig(dir);
+  const store = Store.open(cfg.sentinel.store.path);
+  try {
+    const cur = store.repos.cursor.get(cfg.sentinel.chain);
+    const age = cur ? Math.floor(Date.now() / 1000) - cur.updatedAt : Number.POSITIVE_INFINITY;
+    if (age > maxAgeS) {
+      console.error(cur ? `unhealthy: last committed cycle ${age}s ago (limit ${maxAgeS}s)` : 'unhealthy: no cycle has ever committed');
+      return 1;
+    }
+    console.log(`healthy: last committed cycle ${age}s ago`);
+    return 0;
+  } finally {
+    store.close();
+  }
+}
+
 async function cmdTelegramTest(dir: string): Promise<number> {
   const cfg = loadConfig(dir);
   const gw = createHttpGateway(cfg.sentinel.telegram);
@@ -288,6 +306,10 @@ async function main(argv: string[]): Promise<number> {
     case 'status': {
       const { values } = parseArgs({ args: argv.slice(1), options: common });
       return cmdStatus(values.config ?? DEFAULT_CONFIG);
+    }
+    case 'healthcheck': {
+      const { values } = parseArgs({ args: argv.slice(1), options: { ...common, 'max-age': { type: 'string' } } });
+      return cmdHealthcheck(values.config ?? DEFAULT_CONFIG, Number(values['max-age'] ?? 300));
     }
     case 'telegram': {
       if (sub === 'test') {

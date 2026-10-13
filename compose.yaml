@@ -1,0 +1,15 @@
+# VPS / Docker deployment. Not used on the Windows box (see deploy/windows/).
+services:
+  sentinel:
+    build: .
+    image: sentinel:local
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - ./config:/sentinel/config:ro
+      - ./data:/sentinel/data
+      - ./backups:/sentinel/backups
+    stop_grace_period: 20s
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "10" }
