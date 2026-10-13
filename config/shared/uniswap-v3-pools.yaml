@@ -1,0 +1,3 @@
+# Uniswap v3 pools used for peg checks (Phase 3). Fill in after verifying each pool on Etherscan.
+pools:
+  USDC-USDT-0.01: { address: 0x3416cF6C708Da44DB2624D63ea0AAef7113527C6, tokens: [USDC, USDT], fee: 100 } # verify

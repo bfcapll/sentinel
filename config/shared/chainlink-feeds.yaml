@@ -1,0 +1,6 @@
+# Chainlink feed registry: pair -> address, decimals, heartbeat. Source: data.chain.link.
+feeds:
+  USDC/USD:
+    address: 0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6 # verify
+    decimals: 8 # verify
+    heartbeat_s: 86400 # verify

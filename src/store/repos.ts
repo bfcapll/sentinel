@@ -344,6 +344,11 @@ export class AlertRepo {
     return Number(r.lastInsertRowid);
   }
 
+  /** The alert id is only known after insert, so the rendered text is written back. */
+  setMessage(id: number, message: string): void {
+    this.db.prepare('UPDATE alert SET message = ? WHERE id = ?').run(message, id);
+  }
+
   get(id: number): AlertRow | undefined {
     const r = this.db.prepare('SELECT * FROM alert WHERE id = ?').get(id) as Record<string, unknown> | undefined;
     return r && toAlert(r);

@@ -1,0 +1,10 @@
+{
+  "expected": [
+    { "block": 1020, "condition_key": "demo-proxy/proxy/token/implementation", "tier": "P0" },
+    { "block": 1030, "condition_key": "demo-proxy/proxy/token/admin", "tier": "P0" }
+  ],
+  "must_not": [
+    { "condition_key": "demo-proxy/proxy/token/beacon" },
+    { "condition_key": "ops/*" }
+  ]
+}

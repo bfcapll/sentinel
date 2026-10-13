@@ -1,0 +1,5 @@
+# Morpho Blue core control graph. Defined once, referenced by every Morpho-based holding.
+type: morpho-blue
+label: Morpho Blue
+address: 0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb # verify (PLAN.md Appendix A.3, morpho-org/morpho-blue deployments)
+expect: {} # owner / fee recipient are pinned on first observation; set them here once confirmed on Etherscan

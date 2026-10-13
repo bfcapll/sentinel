@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs';
-import { isMap, isScalar, isSeq, parseDocument, type Document, type Node } from 'yaml';
+import { isMap, isScalar, isSeq, parseDocument, visit, type Document, type Node } from 'yaml';
 
 export type Json = null | boolean | number | string | Json[] | { [k: string]: Json };
 
@@ -31,7 +31,16 @@ export function readYaml(file: string): RawYaml {
   if (doc.errors.length > 0) {
     throw new Error(`${file}: YAML parse error: ${doc.errors.map((e) => e.message).join('; ')}`);
   }
-  return { file, doc, data: (doc.toJS() ?? {}) as Json };
+  // YAML 1.2 reads an unquoted 0x… address as a (precision-losing) hex integer. Config values are
+  // data, not numbers: take the source text of every hex scalar. A second parse keeps `doc`
+  // pristine so `config discover` can rewrite the file without re-quoting addresses.
+  const typed = parseDocument(text);
+  visit(typed, {
+    Scalar(_key, node) {
+      if (node.format === 'HEX' && typeof node.source === 'string') node.value = node.source;
+    },
+  });
+  return { file, doc, data: (typed.toJS() ?? {}) as Json };
 }
 
 /** Paths of nodes carrying a `# verify` comment (trailing or leading). */

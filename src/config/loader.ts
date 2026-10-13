@@ -391,6 +391,19 @@ export function loadConfig(dir: string, opts: LoadOptions = {}): LoadedConfig {
   };
 }
 
+/** Load and validate only sentinel.yaml (e.g. `config discover` needs RPC settings but not valid holdings). */
+export function loadSentinelOnly(dir: string, opts: LoadOptions = {}): SentinelConfig {
+  const env = loadEnv(opts);
+  const issues: ConfigIssue[] = [];
+  const raw = tryRead(path.join(dir, 'sentinel.yaml'), issues, true);
+  if (!raw) throw new ConfigError(issues);
+  const data = substitute(raw, env, issues);
+  scanPlaceholders(data, raw.file, issues);
+  const cfg = issues.length === 0 ? zodIssues(SentinelSchema, data, raw.file, issues) : undefined;
+  if (!cfg || issues.length > 0) throw new ConfigError(issues);
+  return cfg;
+}
+
 /* ------------------------------------------------------------------ raw access (discover) */
 
 export interface RawHolding {

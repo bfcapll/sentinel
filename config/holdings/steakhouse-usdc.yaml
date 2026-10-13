@@ -1,0 +1,80 @@
+# Worked example from PLAN.md §5.2: Steakhouse USDC MetaMorpho vault.
+# Every address below is unverified (`# verify`): check each against Etherscan / Morpho docs, then
+# delete the marker. `0x…` values are placeholders that make `sentinel config check` fail until filled.
+id: steakhouse-usdc
+chain: ethereum
+kind: metamorpho
+asset:
+  address: 0xBEEF01735c132Ada46AA9aA4c54623cAA92A64CB # Steakhouse USDC MetaMorpho vault  # verify
+  decimals: 18
+  symbol: steakUSDC
+  loan_token: { address: 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48, symbol: USDC, decimals: 6 } # verify
+wallets: [main]
+exposure:
+  price_feed: chainlink:USDC/USD # feed address and heartbeat live in shared/chainlink-feeds.yaml
+  exit_size: 100%
+
+control_graph:
+  - id: vault
+    type: metamorpho
+    address: 0xBEEF01735c132Ada46AA9aA4c54623cAA92A64CB # verify
+    expect:
+      owner: 0x… # verify (Steakhouse owner Safe)
+      curator: 0x… # verify
+      guardian: 0x… # verify
+      allocators: [0x…, <public-allocator>] # verify
+      timelock_s: 604800 # 7d  # verify
+      fee_bps_max: 1000
+  - id: owner-safe
+    type: safe
+    address: <vault.expect.owner>
+    expect:
+      threshold_min: 2
+      owners_known: true
+      modules: []
+      guard: 0x0000000000000000000000000000000000000000
+  - id: guardian-safe
+    type: safe
+    address: <vault.expect.guardian>
+    expect: { threshold_min: 2 }
+  - id: morpho-blue
+    $ref: shared/morpho-blue-mainnet
+  - id: usdc
+    $ref: shared/usdc-mainnet
+  - id: public-allocator
+    $ref: shared/public-allocator-mainnet
+
+pending_actions:
+  - { source: morpho-vault, node: vault }
+  - { source: safe-tx-service, node: owner-safe }
+  - { source: safe-tx-service, node: guardian-safe }
+
+markets: # `sentinel config discover steakhouse-usdc` pins the withdrawQueue market ids
+  allowlist_mode: pin
+  pinned: []
+  collateral_allowlist: [wstETH, WBTC, cbBTC, USDT] # extend as the curator adds collateral
+
+oracles:
+  per_market: auto
+  staleness_margin: 1.25
+  divergence_bps: { p1: 100, p0: 300 }
+
+peg:
+  pools:
+    - { kind: curve-ng, address: <USDC/USDT or 3pool>, i: USDC, j: USDT } # verify choice; only for the loan token's peg
+    - { kind: uniswap-v3, address: 0x3416cF6C708Da44DB2624D63ea0AAef7113527C6, fee: 100 } # USDC/USDT 0.01%  # verify
+  sizes: [25%, 50%, 100%]
+  persistence_blocks: 15
+
+liquidity:
+  metamorpho:
+    compute: "withdrawable = sum over m in withdrawQueue of min(vaultSupplyAssets(m), totalSupplyAssets(m) - totalBorrowAssets(m))"
+    also: "maxWithdraw(wallet), vault totalAssets, per-market utilization"
+  thresholds: { ratio_p1: 2.0, ratio_p0: 1.0 } # withdrawable / my position
+
+flows:
+  windows: [1h, 6h, 24h, 7d]
+  top_n_holders: 10
+  big_exit_pct_of_tvl: 5
+
+thresholds: {} # inherit the PLAN.md §6.2 defaults

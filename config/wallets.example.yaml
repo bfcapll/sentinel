@@ -1,0 +1,11 @@
+# Copy to config/wallets.yaml (gitignored) and fill in. Sentinel reads exposure on-chain from these EOAs.
+# `sentinel config check` fails until both values are real.
+
+# Your numeric Telegram user id (message @userinfobot). Only this user can press ACK / Snooze or run commands.
+telegram_user_id: 0 # TODO: replace
+
+wallets:
+  - label: main # referenced from holdings/*.yaml `wallets: [main]`
+    address: "0x…" # TODO: your EOA
+  # - label: cold
+  #   address: "0x…"

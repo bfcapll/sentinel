@@ -1,0 +1,6 @@
+# Morpho PublicAllocator. The mainnet address is NOT confirmed from a primary source (PLAN.md A.3):
+# read it from the vault's SetIsAllocator history before trusting it.
+type: public-allocator
+label: Morpho PublicAllocator
+address: 0xfd32fA2ca22c76dD6E550706Ad913FC6CE91c75D # verify (secondary source only)
+expect: {}

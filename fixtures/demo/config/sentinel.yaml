@@ -1,0 +1,15 @@
+# Self-contained demo config for the replay proof. Literal fake values: nothing here is secret.
+chain: ethereum
+rpc:
+  primary: { http: "https://rpc.invalid/primary" }
+  secondary: { http: "https://rpc.invalid/secondary" }
+  canary: { http: "https://rpc.invalid/canary" }
+telegram:
+  bots:
+    p0: { token: "0000000001:demo-p0-token", chat_id: "-1000" }
+    p1: { token: "0000000002:demo-p1-token", chat_id: "-1001" }
+    p2: { token: "0000000003:demo-p2-token", chat_id: "-1002" }
+  digest: { time: "09:00", timezone: UTC }
+healthchecks: { ping_url: "https://hc.invalid/demo" }
+etherscan: { api_key: demo }
+safe_tx_service: { api_key: demo }

@@ -1,0 +1,12 @@
+id: demo-proxy
+kind: rwa-token
+asset: { address: "0x1111111111111111111111111111111111111111", decimals: 6, symbol: DEMO }
+wallets: [main]
+exposure: { price_feed: "const:1.0", exit_size: 100% }
+control_graph:
+  - id: token
+    type: proxy
+    address: "0x1111111111111111111111111111111111111111"
+    expect:
+      implementation: "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      admin: "0xcccccccccccccccccccccccccccccccccccccccc"

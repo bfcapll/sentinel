@@ -1,0 +1,6 @@
+# Circle USDC FiatToken proxy. The blacklist / pause / minter watchers (Phase 1) attach here.
+type: stablecoin-issuer
+label: USDC (Circle FiatToken proxy)
+address: 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48 # verify
+proxy: {} # EIP-1967 implementation/admin/beacon are pinned on first observation; set them to acknowledge an upgrade
+expect: {} # pauser / blacklister / master_minter / owner: fill from Etherscan, then remove this comment

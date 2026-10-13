@@ -1,0 +1,5 @@
+# Tether USDT (TetherToken). Not an EIP-1967 proxy; Phase 1 watches isBlackListed, paused, deprecated.
+type: stablecoin-issuer
+label: USDT (TetherToken)
+address: 0xdAC17F958D2ee523a2206206994597C13D831ec7 # verify
+expect: {}

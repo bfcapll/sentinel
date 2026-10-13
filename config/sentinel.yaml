@@ -1,0 +1,65 @@
+# Sentinel global configuration. Secrets come from .env via ${VAR}; see .env.example.
+chain: ethereum
+
+rpc:
+  primary: # Alchemy: HTTPS + WSS (archive state on free tier is a plan assumption; verify at signup)
+    http: "https://eth-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY}"
+    ws: "wss://eth-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY}"
+  secondary: # Infura / MetaMask Developer: cross-check + failover
+    http: "https://mainnet.infura.io/v3/${INFURA_API_KEY}"
+  canary: # dRPC public endpoint, eth_blockNumber only, no key  # verify
+    http: "https://eth.drpc.org"
+  confirmations: 2
+  reorg_rescan_blocks: 12
+  poll_interval_ms: 4000
+  health_poll_ms: 12000
+  lag:
+    max_block_diff: 5 # primary vs secondary divergence, blocks
+    diff_secs: 60 # ...sustained this long raises ops.rpc_lag (P1)
+    stall_secs: 90 # a provider silent this long raises ops.rpc_lag (P1)
+    blind_secs: 300 # both silent this long raises ops.chain_blind (P0)
+
+cycle:
+  slow_lane_secs: 300
+  max_log_range: 500
+  max_catchup_blocks: 5000
+
+telegram:
+  bots: # three bots so P2 can be muted and P0 gets its own notification sound
+    p0:
+      token: "${TELEGRAM_P0_TOKEN}"
+      chat_id: "${TELEGRAM_P0_CHAT_ID}"
+    p1:
+      token: "${TELEGRAM_P1_TOKEN}"
+      chat_id: "${TELEGRAM_P1_CHAT_ID}"
+    p2:
+      token: "${TELEGRAM_P2_TOKEN}"
+      chat_id: "${TELEGRAM_P2_CHAT_ID}"
+  repeat_minutes: 5
+  repeat_cap_hours: 24
+  global_repeat_min_interval_s: 60
+  snooze_minutes: 60
+  digest:
+    time: "09:00"
+    timezone: local # or an IANA zone such as America/New_York
+
+healthchecks:
+  ping_url: "${HEALTHCHECKS_PING_URL}"
+  min_interval_s: 60
+
+etherscan:
+  api_key: "${ETHERSCAN_API_KEY}"
+
+safe_tx_service:
+  api_key: "${SAFE_TX_SERVICE_API_KEY}"
+
+store:
+  path: ./data/sentinel.db
+  backup_dir: ./backups
+  backup_keep: 14
+
+logging:
+  level: info
+  # file: ./logs/sentinel.log   # leave unset under NSSM: it captures and rotates stdout
+
+thresholds: {} # global overrides of the PLAN.md §6.2 defaults; see config/SCHEMA.md

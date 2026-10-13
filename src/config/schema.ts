@@ -338,6 +338,7 @@ export const SentinelSchema = z.strictObject({
     confirmations: z.number().int().min(0).default(2),
     reorg_rescan_blocks: z.number().int().min(1).default(12),
     poll_interval_ms: z.number().int().min(500).default(4000).describe('HTTP head polling cadence (used when WS is silent).'),
+    health_poll_ms: z.number().int().min(1000).default(12_000).describe('How often every provider (incl. the canary) is asked for eth_blockNumber for the lag rules.'),
     ws_silence_ms: z.number().int().min(1000).default(20_000).describe('Fall back to polling when WS delivers no head for this long.'),
     request_timeout_ms: z.number().int().min(500).default(10_000),
     lag: z
