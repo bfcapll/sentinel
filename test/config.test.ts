@@ -1,4 +1,4 @@
-import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { cpSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -157,6 +157,28 @@ describe('config loader', () => {
       expect(issues.some((i) => i.file.endsWith('steakhouse-usdc.yaml') && i.kind === 'placeholder')).toBe(true);
       expect(issues.some((i) => i.kind === 'env')).toBe(true);
     }
+  });
+
+  it('the shipped template validates completely once its placeholders and env are filled in', () => {
+    const dir = mkdtempSync(path.join(tmpdir(), 'sentinel-ship-'));
+    cpSync('config', path.join(dir, 'config'), { recursive: true });
+    const holding = path.join(dir, 'config/holdings/steakhouse-usdc.yaml');
+    writeFileSync(
+      holding,
+      readFileSync(holding, 'utf8')
+        .replaceAll('0x…', '0x3333333333333333333333333333333333333333')
+        .replace('<USDC/USDT or 3pool>', '0xbEbc44782C7dB0a1A60Cb6fe97d0b483032FF1C7'),
+    );
+    writeFileSync(path.join(dir, 'config/wallets.yaml'), WALLETS);
+    const env = Object.fromEntries(
+      ['ALCHEMY_API_KEY', 'INFURA_API_KEY', 'ETHERSCAN_API_KEY', 'SAFE_TX_SERVICE_API_KEY'].map((k) => [k, 'x']).concat(
+        ['P0', 'P1', 'P2'].flatMap((n, i) => [[`TELEGRAM_${n}_TOKEN`, `000000000${i}:aaaaaaaaaa`], [`TELEGRAM_${n}_CHAT_ID`, `-${i + 1}`]]),
+        [['HEALTHCHECKS_PING_URL', 'https://hc-ping.com/x']],
+      ),
+    );
+    const cfg = loadConfig(path.join(dir, 'config'), { env, skipDotEnv: true });
+    expect(cfg.holdings[0]!.id).toBe('steakhouse-usdc');
+    expect(cfg.holdings[0]!.control_graph.map((n) => n.id)).toEqual(['vault', 'owner-safe', 'guardian-safe', 'morpho-blue', 'usdc', 'public-allocator']);
   });
 
   it('config/SCHEMA.md is up to date with the zod schema', () => {
