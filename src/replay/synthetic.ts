@@ -83,7 +83,12 @@ export class SyntheticChain implements RpcTransport {
     const rows = this.scenario.balances?.[token.toLowerCase()]?.[holder.toLowerCase()] ?? [];
     let v = 0n;
     let at = -1;
-    for (const r of rows) if (r.fromBlock <= block && r.fromBlock >= at) (v = r.value), (at = r.fromBlock);
+    for (const r of rows) {
+      if (r.fromBlock <= block && r.fromBlock >= at) {
+        v = r.value;
+        at = r.fromBlock;
+      }
+    }
     return v;
   }
 

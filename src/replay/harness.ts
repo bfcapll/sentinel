@@ -118,7 +118,7 @@ export async function runReplay(o: ReplayOptions): Promise<ReplayReport> {
 
   const pinger = new NullPinger();
   const resolved: ReplayReport['resolved'] = [];
-  let telegram: TelegramService;
+  const hook: { telegram?: TelegramService } = {};
   const scheduler = new Scheduler({
     config,
     store,
@@ -132,11 +132,11 @@ export async function runReplay(o: ReplayOptions): Promise<ReplayReport> {
     onCommitted: async (r: CycleResult) => {
       clock.t = r.ts;
       for (const t of r.transitions) if (t.type === 'resolved') resolved.push({ condition_key: t.key, block: r.block });
-      await telegram.tick();
+      await hook.telegram?.tick();
       gateway.flush();
     },
   });
-  telegram = new TelegramService({
+  hook.telegram = new TelegramService({
     store,
     gateway,
     config: config.sentinel.telegram,

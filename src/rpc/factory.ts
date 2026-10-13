@@ -2,6 +2,7 @@ import type { SentinelConfig } from '../config/schema.js';
 import type { Logger } from '../log.js';
 import type { Clock } from '../time.js';
 import { RpcClient, type ProviderEntry } from './client.js';
+import type { ProviderRole } from './types.js';
 import { RpcHealth } from './health.js';
 import { HttpTransport } from './http.js';
 import { WsHeadSource } from './ws.js';
@@ -37,11 +38,21 @@ export function buildLiveRpc(config: SentinelConfig, clock: Clock, log: Logger):
       ...(batch ? { batch: { maxSize: 50, waitMs: 5 } } : {}),
     });
 
-  const primaryName = providerName(r.primary.http, 'primary');
+  // Names must be unique (health state is keyed by name); two providers on one host get role suffixes.
+  const used = new Set<string>();
+  const unique = (url: string, role: ProviderRole): string => {
+    let n = providerName(url, role);
+    if (used.has(n)) n = `${n}-${role}`;
+    used.add(n);
+    return n;
+  };
+  const primaryName = unique(r.primary.http, 'primary');
+  const secondaryName = unique(r.secondary.http, 'secondary');
+  const canaryName = unique(r.canary.http, 'canary');
   const providers: ProviderEntry[] = [
     { name: primaryName, role: 'primary', transport: mk(r.primary.http, primaryName, true) },
-    { name: providerName(r.secondary.http, 'secondary'), role: 'secondary', transport: mk(r.secondary.http, providerName(r.secondary.http, 'secondary'), true) },
-    { name: providerName(r.canary.http, 'canary'), role: 'canary', transport: mk(r.canary.http, providerName(r.canary.http, 'canary'), false) },
+    { name: secondaryName, role: 'secondary', transport: mk(r.secondary.http, secondaryName, true) },
+    { name: canaryName, role: 'canary', transport: mk(r.canary.http, canaryName, false) },
   ];
   const health = new RpcHealth(
     r.lag,

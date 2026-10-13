@@ -60,6 +60,7 @@ export class RpcHealth {
     now: number,
   ) {
     for (const p of providers) {
+      if (this.providers.has(p.name)) throw new Error(`duplicate RPC provider name "${p.name}"`);
       this.providers.set(p.name, { ...p, head: null, lastAdvanceAt: now, firstSeenAt: now, errors: [] });
     }
     const primary = providers.find((p) => p.role === 'primary');

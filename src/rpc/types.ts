@@ -53,11 +53,14 @@ export interface RpcLog {
  * live client and the replay harness (fixtures) run exactly the same code (PLAN.md §8.1).
  */
 export interface ChainReader {
-  getBlock(block: number | 'latest'): Promise<BlockHeader>;
+  /** `fresh` bypasses the per-block cache (needed to re-verify a block hash for reorg detection). */
+  getBlock(block: number | 'latest', opts?: { fresh?: boolean }): Promise<BlockHeader>;
   getBlockNumber(): Promise<number>;
   getStorageAt(address: Address, slot: Hex, block: number): Promise<Hex>;
   multicall(calls: ReadCall[], block: number): Promise<ReadResult[]>;
   getLogs(query: LogQuery): Promise<RpcLog[]>;
+  /** Drop cached responses for blocks >= `fromBlock` (called after a reorg: those numbers changed). */
+  invalidate?(fromBlock: number): void;
 }
 
 /** Transient failures are worth retrying on another provider; deterministic ones (reverts) are not. */

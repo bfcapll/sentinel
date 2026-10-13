@@ -93,8 +93,6 @@ export const ProxyExpectSchema = z
     'Expected EIP-1967 slot values. Omitted fields are pinned to the first observed value (trust on first use) and alert on any later change. 0x0 means "slot must stay empty".',
   );
 
-const ExpectLoose = z.record(z.string(), z.unknown());
-
 const NodeCommon = {
   id: Slug.describe('Node id, unique within the holding. Referenced by pending_actions and <id.expect.field> references.'),
   address: AddressSchema,

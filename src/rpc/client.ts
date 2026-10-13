@@ -153,14 +153,22 @@ export class RpcClient implements ChainReader {
     return n;
   }
 
-  async getBlock(block: number | 'latest'): Promise<BlockHeader> {
+  invalidate(fromBlock: number): void {
+    for (const b of [...this.cache.keys()]) if (b >= fromBlock) this.cache.delete(b);
+  }
+
+  async getBlock(block: number | 'latest', opts: { fresh?: boolean } = {}): Promise<BlockHeader> {
     const fetchIt = async (): Promise<BlockHeader> => {
       const { value } = await this.send('eth_getBlockByNumber', [block === 'latest' ? 'latest' : toHexNum(block), false]);
       const h = value as RawHeader | null;
       if (!h) throw new RpcError(`block ${block} not found`, { transient: true, method: 'eth_getBlockByNumber' });
       return { number: fromHexNum(h.number), hash: h.hash, parentHash: h.parentHash, timestamp: fromHexNum(h.timestamp) };
     };
-    return block === 'latest' ? fetchIt() : this.cached(block, 'header', fetchIt);
+    if (block === 'latest') return fetchIt();
+    if (opts.fresh) {
+      this.cache.get(block)?.delete('header');
+    }
+    return this.cached(block, 'header', fetchIt);
   }
 
   getStorageAt(address: Address, slot: Hex, block: number): Promise<Hex> {

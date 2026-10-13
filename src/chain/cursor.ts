@@ -51,7 +51,7 @@ export class CursorPlanner {
     let reorg: CursorPlan['reorg'];
     let cursorBlock = cursor.block;
 
-    const onChain = await this.reader.getBlock(cursor.block);
+    const onChain = await this.reader.getBlock(cursor.block, { fresh: true });
     let reason: string | null = null;
     if (onChain.hash.toLowerCase() !== cursor.hash.toLowerCase()) {
       reason = `block ${cursor.block} hash changed (${short(cursor.hash)} -> ${short(onChain.hash)})`;
@@ -61,7 +61,8 @@ export class CursorPlanner {
 
     if (reason) {
       const rewoundTo = Math.max(0, cursor.block - this.opts.rescanBlocks);
-      const anchor = await this.reader.getBlock(rewoundTo);
+      this.reader.invalidate?.(rewoundTo);
+      const anchor = await this.reader.getBlock(rewoundTo, { fresh: true });
       this.log.warn({ cursor: cursor.block, rewoundTo, reason }, 'reorg detected, rewinding cursor');
       this.store.tx(() => {
         this.store.repos.blockLog.deleteAbove(rewoundTo);
